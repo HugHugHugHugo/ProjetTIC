@@ -70,6 +70,7 @@ def création_attestation():
 	c_line2 = "openssl dgst -sha256 -sign ecc.ca.key.pem texte.txt | base64" 
 	d = subprocess.Popen(c_line2,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 	(data, ignorer) = cmd2.communicate()
+	data = data.decode()[:-2]
 	datASCII=DATA CONVERTIE EN ASCII OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 	nomqr='qrcode.png'
 	qr=qrcode.make(datASCII)
