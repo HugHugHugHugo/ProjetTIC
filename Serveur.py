@@ -72,7 +72,7 @@ def création_attestation():
 	(data, ignorer) = cmd2.communicate()
 	datASCII=DATA CONVERTIE EN ASCII OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 	nomqr='qrcode.png'
-	qr=qrcode.make(data)
+	qr=qrcode.make(datASCII)
 	qr.save(nomqr,scale=2)
 	redim=subprocess.Popen('mogrify -resize 1000x600 texte.png',shell=True,stdout=subprocess.PIPE)
 	time.sleep(0.2)
