@@ -71,7 +71,7 @@ def création_attestation():
 	d = subprocess.Popen(c_line2,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 	(data, ignorer) = cmd2.communicate()
 	data = data.decode()[:-2]
-	datASCII=DATA CONVERTIE EN ASCII OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+	datASCII=[ord(c) for c in data]
 	nomqr='qrcode.png'
 	qr=qrcode.make(datASCII)
 	qr.save(nomqr,scale=2)
@@ -95,7 +95,32 @@ def création_attestation():
 def vérification_attestation():
 	contenu_image = request.files.get('image')
 	contenu_image.save('attestation_a_verifier.png',overwrite=True)
-	response.set_header('Content-type', 'text/plain')
+	response.set_header('Content-type', 'text/plain')	
+	image = Image.open("attestation_a_verifier.png")
+	MessStegano=recuperer(image, QUELLE TAILLE METTRE ICI? COMMENT LA CONNAITRE?) # récup message de la stégano
+
+	data2 =zbarlight.scan_codes(['qrcode'],image) # début traitement QRCODE
+	data3=data2.decode()[0]
+	ldt=list(data3)
+	ldt.pop(0)
+	ldt.pop(len(ldt)-1)
+	data4=''
+	for x in range(0,len(ldt)):
+		data4=data4+ldt[x]
+	dataf=data4.split(',')
+	for y in range(0,len(data5)):
+		dataf[y]=int(dataf[y])
+	dataQRCODE=''
+	for z in range(0,len(data5)):
+		dataQRCODE=dataQRCODE+chr(dataf[z]) # dataQRCODE = la signature en base 64 de texte.txt avec ecc.ca.key.pem
+	data_cmd = "echo '"+dataQRCODE+"' > signature.sign"
+	e =subprocess.Popen(data_cmd,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+	time.sleep(0.2)
+	c_line3 = "base64 -d signature.sign > signature.sign.bin"
+	cmd4 = subprocess.Popen(c_line3,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+	time.sleep(0.2)
+
+
 	return "ok!"
 
 run(host='0.0.0.0',port=8080,debug=True)
