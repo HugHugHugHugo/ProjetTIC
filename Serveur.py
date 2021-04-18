@@ -28,19 +28,21 @@ def recuperer_bit_pfaible(pixel):
 	r_val = pixel[0]
 	return bin(r_val)[-1]
 
+
 def cacher(image,message):
-	dimX,dimY = image.size
-	im = image.load()
-	message_binaire = ''.join([vers_8bit(c) for c in message])
-	posx_pixel = 0
-	posy_pixel = 0
-	for bit in message_binaire:
-		im[posx_pixel,posy_pixel] = modifier_pixel(im[posx_pixel,posy_pixel],bit)
-		posx_pixel += 1
-		if (posx_pixel == dimX):
-			posx_pixel = 0
-			posy_pixel += 1
-		assert(posy_pixel < dimY)
+    dimX,dimY = image.size
+    im = image.load()
+    message_binaire = ''.join([vers_8bit(c) for c in message])
+    posx_pixel = 0
+    posy_pixel = 0
+    for bit in message_binaire:
+        im[posx_pixel,posy_pixel] = modifier_pixel(im[posx_pixel,posy_pixel],bit)
+        posx_pixel +=1
+        if (posx_pixel == dimX):
+            posx_pixel = 0
+            posy_pixel += 1
+        assert(posy_pixel < dimY)
+
 
 def recuperer(image,taille):
 	message = ""
@@ -121,29 +123,41 @@ def création_attestation():
 	
 	time.sleep(0.2)
 	#combine les images (image texte, Qrcode, et fond_attestation)
-	redim=subprocess.Popen('mogrify -resize 1000x600 texte.png',shell=True,stdout=subprocess.PIPE)
+	redim =subprocess.Popen('mogrify -resize 1000x600 texte.png',shell=True,stdout=subprocess.PIPE)
 	time.sleep(0.2)
-	fusion1=subprocess.Popen('composite -gravity center texte.png fond_attestation.png combinaison.png',shell=True,stdout=subprocess.PIPE)
+	redim2 =subprocess.Popen('mogrify -resize 100x100 qrcode.png',shell=True,stdout=subprocess.PIPE)
 	time.sleep(0.2)
-	fusion2=subprocess.Popen('composite -geometry +1418+934 qrcode.png combinaison.png attestation.png',shell=True,stdout=subprocess.PIPE)
-	
-	mon_image = Image.open('attestation.png')
+	fusion1 =subprocess.Popen('composite -gravity center texte.png fond_attestation.png combinaison.png',shell=True,stdin = subprocess.PIPE,stdout=subprocess.PIPE)
+	time.sleep(2)
 
+	fusion2=subprocess.Popen('composite -geometry +1418+934 qrcode.png combinaison.png attestation.png',shell=True,stdin = subprocess.PIPE,stdout=subprocess.PIPE)
+	time.sleep(2)
+	
 	#le message a cacher = (Bloc d'information + timeStamp) 
 	bloc_info = contenu_identité+contenu_intitulé_certification
-
 	CreateTimestamp('texte.txt')
 	timestamp = 'texte.txt.tsr'
 	timestamp = fichier_vers_Variable64(timestamp) #timestamp en base64
 	Message = ajoutCaractère(bloc_info,64)+timestamp # taille  = 64 + 1828
 
 
+	mon_image = Image.open('attestation.png')
 	cacher(mon_image,Message)
 	mon_image.save('Attestation.png')
-	"""
-	supImTexte=subprocess.Popen('rm text.png',shell=True,stdout=subprocess.PIPE)
+
+
+	#suppression des fichiers inutiles 
+	supImTexte=subprocess.Popen('rm texte.png',shell=True,stdout=subprocess.PIPE)
 	supqr=subprocess.Popen('rm qrcode.png',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm texte.txt',shell=True,stdout=subprocess.PIPE)"""
+	suptxt=subprocess.Popen('rm texte.txt',shell=True,stdout=subprocess.PIPE)
+	suptxt=subprocess.Popen('rm texte.txt.tsr',shell=True,stdout=subprocess.PIPE)
+	suptxt=subprocess.Popen('rm texte.txt.tsq',shell=True,stdout=subprocess.PIPE)
+	suptxt=subprocess.Popen('rm attestation.png',shell=True,stdout=subprocess.PIPE)
+	suptxt=subprocess.Popen('rm combinaison.png',shell=True,stdout=subprocess.PIPE)
+
+
+
+
 	descripteur_fichier = open('Attestation.png','rb')
 	contenu_fichier = descripteur_fichier.read()
 	descripteur_fichier.close()
@@ -158,7 +172,7 @@ def création_attestation():
 
 
 
-
+"""
 
 
 @route('/verification', method='POST')
@@ -192,5 +206,5 @@ def vérification_attestation():
 
 
 	return "ok!"
-
+"""
 run(host='0.0.0.0',port=8080,debug=True)
