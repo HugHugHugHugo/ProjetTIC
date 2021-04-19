@@ -11,17 +11,19 @@ while 1:
 		nm=input('NOM Prénom ? ')
 		print('\n')
 		crtf=input('Attestation de réussite à quoi? ')
-		cmd1="curl -X POST -d 'identite="+nm+" -d 'intitule_certif="+crtf+" \ http://localhost:9000/creation"
+		cmd1="curl -X POST -d 'identite="+nm+" -d 'intitule_certif="+crtf+" \http://localhost:8080/creation"
 		a=subprocess.Popen(cmd1,shell=True,stdout=subprocess.PIPE)
-		time.sleep(1)
+		time.sleep(7.5)
+		print('\n')
 		sys.exit(0)
 	if r=='V':
 		print('\n')
 		nm=input("Nom de l'attestation à vérifier: ")
 		print('\n')
-		cmd2="curl -v -F image=@"+nm+" http://localhost:9000/verification"
+		cmd2="curl -v -F image=@"+nm+" http://localhost:8080/verification"
 		b=subprocess.Popen(cmd2,shell=True,stdout=subprocess.PIPE)
-		time.sleep(1)
+		time.sleep(7.5)
+		print('\n')
 		sys.exit(0)
 	print('\n')
 	print('Veuillez entrer une réponse valide, R ou V.\n')

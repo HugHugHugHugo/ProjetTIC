@@ -102,13 +102,13 @@ def création_attestation():
 	crea_ima_texte=subprocess.Popen(cmd1,shell=True,stdout=subprocess.PIPE)
 	
 	#creer fichier contenant les informations à signer. 
-	c_line1 = "echo "+contenu_identité+contenu_intitulé_certification+" > texte.txt"
+	c_line1 = "echo "+str(contenu_identité)+str(contenu_intitulé_certification)+" > texte.txt"
 	c = subprocess.Popen(c_line1, shell=True, stdin=subprocess.PIPE,stdout= subprocess.PIPE)
 	time.sleep(0.2)
 	
 	
 	#signe le fichier texte.txt et converti le contenue en base64.
-	c_line2 = "openssl dgst -sha256 -sign ecc.ca.key.pem texte.txt | base64" 
+	c_line2 = "openssl dgst -sha256 -sign ecc.ca.kpriv.pem texte.txt | base64" 
 	cmd2 = subprocess.Popen(c_line2,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 	(data, ignorer) = cmd2.communicate()
 	data = data.decode()[:-2]
@@ -134,7 +134,7 @@ def création_attestation():
 	time.sleep(2)
 	
 	#le message a cacher = (Bloc d'information + timeStamp) 
-	bloc_info = contenu_identité+contenu_intitulé_certification
+	bloc_info = str(contenu_identité)+str(contenu_intitulé_certification)
 	CreateTimestamp('texte.txt')
 	timestamp = 'texte.txt.tsr'
 	timestamp = fichier_vers_Variable64(timestamp) #timestamp en base64
@@ -166,25 +166,26 @@ def création_attestation():
 
 
 
-
-
-
-
-
-
-"""
-
-
 @route('/verification', method='POST')
 def vérification_attestation():
 	contenu_image = request.files.get('image')
 	contenu_image.save('attestation_a_verifier.png',overwrite=True)
-	response.set_header('Content-type', 'text/plain')	
-	image = Image.open("attestation_a_verifier.png")
-	MessStegano=recuperer(image, QUELLE TAILLE METTRE ICI? COMMENT LA CONNAITRE?) # récup message de la stégano
-
-	data2 =zbarlight.scan_codes(['qrcode'],image) # début traitement QRCODE
-	data3=data2.decode()[0]
+	response.set_header('Content-type', 'text/plain')
+	image=Image.open('attestation_a_verifier.png')
+	MessStegano=recuperer(image, 1891) # récup message de la stégano
+	nminti=''
+	g=0
+	while MessStegano[g] != '+':
+		nminti += MessStegano[g] # à la fin de la boucle contient Nom et Intitulé concaténés
+		g+=1
+	cmd7='echo "'+nminti+'" > texte.txt'
+	h=subprocess.Popen(cmd7,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+	cmd5='convert attestation_a_verifier.png -crop 220x220+1418+934 qrcodeA.png'
+	prqr=subprocess.Popen(cmd5,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+	time.sleep(1)
+	qrcrop = Image.open("qrcodeA.png")
+	data2 =zbarlight.scan_codes(['qrcode'],qrcrop) # début traitement QRCODE
+	data3=data2[0].decode()
 	ldt=list(data3)
 	ldt.pop(0)
 	ldt.pop(len(ldt)-1)
@@ -192,19 +193,35 @@ def vérification_attestation():
 	for x in range(0,len(ldt)):
 		data4=data4+ldt[x]
 	dataf=data4.split(',')
-	for y in range(0,len(data5)):
+	for y in range(0,len(dataf)):
 		dataf[y]=int(dataf[y])
 	dataQRCODE=''
-	for z in range(0,len(data5)):
+	for z in range(0,len(dataf)):
 		dataQRCODE=dataQRCODE+chr(dataf[z]) # dataQRCODE = la signature en base 64 de texte.txt avec ecc.ca.key.pem
-	data_cmd = "echo '"+dataQRCODE+"' > signature.sign"
-	e =subprocess.Popen(data_cmd,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
-	time.sleep(0.2)
-	c_line3 = "base64 -d signature.sign > signature.sign.bin"
+	dataQRCODE += '='
+	c_line3 = "echo '"+dataQRCODE+"' | base64 -d > signature.sign.bin"
 	cmd4 = subprocess.Popen(c_line3,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 	time.sleep(0.2)
+	cmd6='openssl dgst -sha256 -verify ecc.ca.kpub.pem -signature signature.sign.bin texte.txt'
+	i=subprocess.Popen(cmd6,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+	(retour,ignorer)=i.communicate()
+	QRVERIF=retour.decode()
+	Tsp=MessStegano[64:]+'='
+	cmd8='echo "'+Tsp+'" | base64 -d > texte.txt.tsr'
+	k=subprocess.Popen(cmd8,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+	time.sleep(0.2)
+	cmd9='openssl ts -verify -data texte.txt -in texte.txt.tsr -CAfile cacert.pem -untrusted tsa.crt'
+	l=subprocess.Popen(cmd9,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+	(revers,ignorer)=l.communicate()
+	TIMESTAMPVERIF=revers.decode()
+	supqr=subprocess.Popen('rm qrcodeA.png',shell=True,stdout=subprocess.PIPE)
+	suptxt=subprocess.Popen('rm texte.txt',shell=True,stdout=subprocess.PIPE)
+	supsign=subprocess.Popen('rm signature.sign.bin',shell=True,stdout=subprocess.PIPE)
+	supatt=subprocess.Popen('rm attestation_a_verifier.png',shell=True,stdout=subprocess.PIPE)
+	suptxtsr=subprocess.Popen('rm texte.txt.tsr',shell=True,stdout=subprocess.PIPE)
+	if (QRVERIF == 'Verified OK') and (TIMESTAMPVERIF == 'Verification: OK'):
+		return "\nAttestation authentique\n"
+	else :
+		return "\nFausse attestation! Appel de la police des attestations en cours...\n"
 
-
-	return "ok!"
-"""
 run(host='0.0.0.0',port=8080,debug=True)
