@@ -11,8 +11,8 @@ while 1:
 		nm=input('NOM Prénom ? ')
 		print('\n')
 		crtf=input('Attestation de réussite à quoi? ')
-		cmd1="curl -X POST -d 'identite="+nm+" -d 'intitule_certif="+crtf+" \http://localhost:8080/creation"
-		a=subprocess.Popen(cmd1,shell=True,stdout=subprocess.PIPE)
+		cmd1="curl -X POST -d 'identite="+nm+"' -d 'certitule="+crtf+"' \http://localhost:9000/creation"
+		a=subprocess.Popen(cmd1,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 		time.sleep(7.5)
 		print('\n')
 		sys.exit(0)
@@ -20,8 +20,8 @@ while 1:
 		print('\n')
 		nm=input("Nom de l'attestation à vérifier: ")
 		print('\n')
-		cmd2="curl -v -F image=@"+nm+" http://localhost:8080/verification"
-		b=subprocess.Popen(cmd2,shell=True,stdout=subprocess.PIPE)
+		cmd2="curl -v -F image=@"+nm+" http://localhost:9000/verification"
+		b=subprocess.Popen(cmd2,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 		time.sleep(7.5)
 		print('\n')
 		sys.exit(0)

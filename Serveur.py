@@ -91,15 +91,15 @@ def ajoutCaractère(chaine, tailleFinal):
 
 @route('/creation', method='POST')
 def création_attestation():
+	contenu_intitulé_certification = request.forms.get('certitule')
 	contenu_identité = request.forms.get('identite')
-	contenu_intitulé_certification = request.forms.get('intitule_certif')
 	#print('nom prénom :', contenu_identité, ' intitulé de la certification :',contenu_intitulé_certification)
 	response.set_header('Content-type', 'image/png')
-
 	#creer une l'image texte.
-	
-	cmd1='curl -o texte.png "http://chart.apis.google.com/chart" --data-urlencode "chst=d_text_outline" --data-urlencode "chld=000000|56|h|FFFFFF|b|${texte_attestation="%s|Attestation de réussite|délivrée à:|%s"}"'%(contenu_intitulé_certification,contenu_identité)
-	crea_ima_texte=subprocess.Popen(cmd1,shell=True,stdout=subprocess.PIPE)
+	cmd1='texte_attestation="'+str(contenu_intitulé_certification)+'|Attestation de réussite|délivrée à:|'+str(contenu_identité)+'" && curl -o texte.png "http://chart.apis.google.com/chart" --data-urlencode "chst=d_text_outline" --data-urlencode "chld=000000|56|h|FFFFFF|b|${texte_attestation}"'
+	#cmd1='curl -o texte.png "http://chart.apis.google.com/chart" --data-urlencode "chst=d_text_outline" --data-urlencode "chld=000000|56|h|FFFFFF|b|${texte_attestation="%s|Attestation de réussite|délivrée à:|%s"}"'%(contenu_intitulé_certification,contenu_identité)
+	print(cmd1)
+	crea_ima_texte=subprocess.run(cmd1,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 	
 	#creer fichier contenant les informations à signer. 
 	c_line1 = "echo "+str(contenu_identité)+str(contenu_intitulé_certification)+" > texte.txt"
@@ -125,12 +125,12 @@ def création_attestation():
 	#combine les images (image texte, Qrcode, et fond_attestation)
 	redim =subprocess.Popen('mogrify -resize 1000x600 texte.png',shell=True,stdout=subprocess.PIPE)
 	time.sleep(0.2)
-	redim2 =subprocess.Popen('mogrify -resize 100x100 qrcode.png',shell=True,stdout=subprocess.PIPE)
+	redim2 =subprocess.Popen('mogrify -resize 220x220 qrcode.png',shell=True,stdout=subprocess.PIPE)
 	time.sleep(0.2)
 	fusion1 =subprocess.Popen('composite -gravity center texte.png fond_attestation.png combinaison.png',shell=True,stdin = subprocess.PIPE,stdout=subprocess.PIPE)
 	time.sleep(2)
 
-	fusion2=subprocess.Popen('composite -geometry +1418+934 qrcode.png combinaison.png attestation.png',shell=True,stdin = subprocess.PIPE,stdout=subprocess.PIPE)
+	fusion2=subprocess.Popen('composite -geometry +1418+934 qrcode.png combinaison.png attest.png',shell=True,stdin = subprocess.PIPE,stdout=subprocess.PIPE)
 	time.sleep(2)
 	
 	#le message a cacher = (Bloc d'information + timeStamp) 
@@ -141,10 +141,10 @@ def création_attestation():
 	Message = ajoutCaractère(bloc_info,64)+timestamp # taille  = 64 + 1828
 
 
-	mon_image = Image.open('attestation.png')
+	mon_image = Image.open('attest.png')
 	cacher(mon_image,Message)
 	mon_image.save('Attestation.png')
-
+	time.sleep(1)
 
 	#suppression des fichiers inutiles 
 	supImTexte=subprocess.Popen('rm texte.png',shell=True,stdout=subprocess.PIPE)
@@ -152,7 +152,7 @@ def création_attestation():
 	suptxt=subprocess.Popen('rm texte.txt',shell=True,stdout=subprocess.PIPE)
 	suptxt=subprocess.Popen('rm texte.txt.tsr',shell=True,stdout=subprocess.PIPE)
 	suptxt=subprocess.Popen('rm texte.txt.tsq',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm attestation.png',shell=True,stdout=subprocess.PIPE)
+	suptxt=subprocess.Popen('rm attest.png',shell=True,stdout=subprocess.PIPE)
 	suptxt=subprocess.Popen('rm combinaison.png',shell=True,stdout=subprocess.PIPE)
 
 
