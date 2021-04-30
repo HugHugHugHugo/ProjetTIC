@@ -217,7 +217,7 @@ def vérification_attestation():
 			return "\nFausse attestation! Appel de la police des attestations en cours...\n"
 	else :
 		return "\nFausse attestation! Appel de la police des attestations en cours...\n"
-	time.sleep(3)
+	time.sleep(2)
 	supFichInutiles=subprocess.Popen('rm qrcodeA.png && rm texte.txt && rm signature.sign.bin && rm attestation_a_verifier.png && rm texte.txt.tsr',shell=True,stdout=subprocess.PIPE)
 
 run(host='0.0.0.0',port=8080,debug=True)
