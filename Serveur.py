@@ -76,6 +76,7 @@ def CreateTimestamp(nom_fichier):
     c_line2 = "curl -H 'Content-Type: application/timestamp-query' --data-binary '@"+nom_fichier+".tsq' https://freetsa.org/tsr > "+nom_fichier+".tsr"
 
     cmd1 = subprocess.Popen(c_line1, shell=True, stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+    time.sleep(1)
     cmd2 = subprocess.Popen(c_line2, shell=True, stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 	
 
@@ -136,6 +137,7 @@ def création_attestation():
 	#le message a cacher = (Bloc d'information + timeStamp) 
 	bloc_info = str(contenu_identité)+str(contenu_intitulé_certification)
 	CreateTimestamp('texte.txt')
+	time.sleep(1)
 	timestamp = 'texte.txt.tsr'
 	timestamp = fichier_vers_Variable64(timestamp) #timestamp en base64
 	Message = ajoutCaractère(bloc_info,64)+timestamp # taille  = 64 + 1828
@@ -144,19 +146,11 @@ def création_attestation():
 	mon_image = Image.open('attest.png')
 	cacher(mon_image,Message)
 	mon_image.save('Attestation.png')
+	mon_image.close()
 	time.sleep(1)
 
 	#suppression des fichiers inutiles 
-	supImTexte=subprocess.Popen('rm texte.png',shell=True,stdout=subprocess.PIPE)
-	supqr=subprocess.Popen('rm qrcode.png',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm texte.txt',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm texte.txt.tsr',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm texte.txt.tsq',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm attest.png',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm combinaison.png',shell=True,stdout=subprocess.PIPE)
-
-
-
+	supFichierInu=subprocess.Popen('rm texte.png && rm qrcode.png && rm texte.txt && rm texte.txt.tsr && rm texte.txt.tsq && rm attest.png && rm combinaison.png',shell=True,stdout=subprocess.PIPE)
 
 	descripteur_fichier = open('Attestation.png','rb')
 	contenu_fichier = descripteur_fichier.read()
@@ -173,6 +167,7 @@ def vérification_attestation():
 	response.set_header('Content-type', 'text/plain')
 	image=Image.open('attestation_a_verifier.png')
 	MessStegano=recuperer(image, 1891) # récup message de la stégano
+	image.close()
 	nminti=''
 	g=0
 	while MessStegano[g] != '+':
@@ -185,6 +180,7 @@ def vérification_attestation():
 	time.sleep(1)
 	qrcrop = Image.open("qrcodeA.png")
 	data2 =zbarlight.scan_codes(['qrcode'],qrcrop) # début traitement QRCODE
+	qrcrop.close()
 	data3=data2[0].decode()
 	ldt=list(data3)
 	ldt.pop(0)
@@ -214,14 +210,14 @@ def vérification_attestation():
 	l=subprocess.Popen(cmd9,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 	(revers,ignorer)=l.communicate()
 	TIMESTAMPVERIF=revers.decode()
-	supqr=subprocess.Popen('rm qrcodeA.png',shell=True,stdout=subprocess.PIPE)
-	suptxt=subprocess.Popen('rm texte.txt',shell=True,stdout=subprocess.PIPE)
-	supsign=subprocess.Popen('rm signature.sign.bin',shell=True,stdout=subprocess.PIPE)
-	supatt=subprocess.Popen('rm attestation_a_verifier.png',shell=True,stdout=subprocess.PIPE)
-	suptxtsr=subprocess.Popen('rm texte.txt.tsr',shell=True,stdout=subprocess.PIPE)
-	if (QRVERIF == 'Verified OK') and (TIMESTAMPVERIF == 'Verification: OK'):
-		return "\nAttestation authentique\n"
+	if (QRVERIF == 'Verified OK\n') :
+		if (TIMESTAMPVERIF == 'Verification: OK\n'):
+			return "\nAttestation authentique\n"
+		else :
+			return "\nFausse attestation! Appel de la police des attestations en cours...\n"
 	else :
 		return "\nFausse attestation! Appel de la police des attestations en cours...\n"
+	time.sleep(3)
+	supFichInutiles=subprocess.Popen('rm qrcodeA.png && rm texte.txt && rm signature.sign.bin && rm attestation_a_verifier.png && rm texte.txt.tsr',shell=True,stdout=subprocess.PIPE)
 
 run(host='0.0.0.0',port=8080,debug=True)
