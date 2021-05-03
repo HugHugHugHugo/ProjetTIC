@@ -178,10 +178,9 @@ Il est nécessaire d'exécuter les programmes dans un ordre spécifique:
 
 \begin{enumerate}
 {\large	
-	\item  InitialisationCA.py
 	\item Serveur.py
-	\item ServeurFrontal.py
-	\item FaciliteurDeRequêtes.py
+	\item \textit{Facultatif:} cast la comande socat dans le terminal
+	\item FaciliteurDesRequêtes.py ou FaciliteurAvecSocat.py suivant 2)
 }
 \end{enumerate}
 
@@ -270,7 +269,7 @@ La dissimulation des informations se réalise à l'aide des fonctions données d
 \begin{enumerate}[label=(\roman*)]
 \item On réalise la création de la signature
 \begin{lstlisting}
-c_line2 = "openssl dgst -sha256 -sign ecc.ca.kpriv.pem texte.txt | base64" 
+c_line2 = "openssl dgst -sha256 -sign ecc.ca.kpriv.pem -passin pass:password texte.txt | base64" 
 	
 cmd2 = subprocess.Popen(c_line2,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
 (data, ignorer) = cmd2.communicate()	
@@ -280,7 +279,7 @@ data = data.decode()[:-2]
 datASCII=[ord(c) for c in data]
 \end{lstlisting}
 \vspace*{7mm}
-Pour effectuer une signature sur un fichier, il suffit d'une clé privée et d'un fichier à signer. Dans notre cas, on convertit directement le contenu de la signature en base64 afin de pouvoir le convertir en ASCII.
+Pour effectuer une signature sur un fichier, il suffit d'une clé privée et d'un fichier à signer. Par ailleurs, la clé privée étant sécurisé par un chiffrement AES, il est nécessaire d'intégrer le mot de passe de la clé dans la commande. Dans notre cas, on convertit directement le contenu de la signature en base64 afin de pouvoir le convertir en ASCII.
 
 \item On crée un Qrcode contenant et la signature et la clé privée.
 \end{enumerate}
@@ -413,7 +412,16 @@ et si ces deux conditions sont satisfaites, alors l'attestation est bel et bien 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \pagebreak
 
-\section{Exemples}
+\section{Exemple d'exécution}
+
+\includegraphics[scale=0.5]{img1.png}
+\newline
+\break
+\includegraphics[scale=0.5]{img2.png}
+\newline
+\break
+\includegraphics[scale=0.5]{img3.png}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
